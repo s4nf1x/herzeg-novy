@@ -31,7 +31,6 @@ var swiper1 = new Swiper(".testimonials-slider", {
   watchSlidesProgress: true,
   slidesPerView: 1,
   spaceBetween: 20,
-  effect: 'fade',
   navigation: {
     nextEl: ".testimonials-slider .swiper-button-next",
     prevEl: ".testimonials-slider .swiper-button-prev",
