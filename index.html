@@ -699,232 +699,235 @@
   </div>
 </section>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const radioInputs = document.querySelectorAll('.radio-input input[type="radio"]');
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const radioInputs = document.querySelectorAll('.radio-input input[type="radio"]');
 
-    radioInputs.forEach(input => {
-      if (!input.value) {
-        input.value = input.nextElementSibling.textContent.trim();
-      }
+      radioInputs.forEach(input => {
+        if (!input.value) {
+          input.value = input.nextElementSibling.textContent.trim();
+        }
 
-      const label = input.nextElementSibling;
+        const label = input.nextElementSibling;
 
-      if (!label.querySelector('.custom-radio')) {
-        const customRadio = document.createElement('span');
-        customRadio.className = 'custom-radio';
-        label.prepend(customRadio);
-      }
+        if (!label.querySelector('.custom-radio')) {
+          const customRadio = document.createElement('span');
+          customRadio.className = 'custom-radio';
+          label.prepend(customRadio);
+        }
 
-      updateRadioStyle(input);
+        updateRadioStyle(input);
 
-      input.addEventListener('change', function() {
-        // Снимаем выделение с других radio в той же группе
-        const groupName = this.name;
-        const groupRadios = document.querySelectorAll(`input[name="${groupName}"]`);
-        groupRadios.forEach(radio => {
-          updateRadioStyle(radio);
+        input.addEventListener('change', function() {
+          const groupName = this.name;
+          const groupRadios = document.querySelectorAll(`input[name="${groupName}"]`);
+          groupRadios.forEach(radio => {
+            updateRadioStyle(radio);
+          });
+
+          updateNextButtonState();
         });
 
+        label.addEventListener('click', function(e) {
+          const input = this.previousElementSibling;
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change'));
+        });
+      });
+
+      function updateRadioStyle(radio) {
+        const label = radio.nextElementSibling;
+        const customRadio = label.querySelector('.custom-radio');
+
+        if (radio.checked) {
+          customRadio.classList.add('checked');
+          label.classList.add('checked');
+        } else {
+          customRadio.classList.remove('checked');
+          label.classList.remove('checked');
+        }
+      }
+
+      const steps = document.querySelectorAll('.quiz-step');
+      const nextButton = document.querySelector('.quiz-buttons .btn-blue');
+      let currentStep = 0;
+
+      showStep(currentStep);
+      updateButtons();
+
+      nextButton.addEventListener('click', function() {
+        if (this.classList.contains('disabled')) return;
+
+        if (currentStep < steps.length - 1) {
+          currentStep++;
+          showStep(currentStep);
+          updateButtons();
+        } else {
+          submitForm();
+        }
+      });
+
+      function showStep(stepIndex) {
+        steps.forEach((step, index) => {
+          step.style.display = index === stepIndex ? 'block' : 'none';
+        });
+      }
+
+      function updateButtons() {
         updateNextButtonState();
-      });
 
-      label.addEventListener('click', function(e) {
-        const input = this.previousElementSibling;
-        input.checked = true;
-        input.dispatchEvent(new Event('change'));
-      });
-    });
-
-    function updateRadioStyle(radio) {
-      const label = radio.nextElementSibling;
-      const customRadio = label.querySelector('.custom-radio');
-
-      if (radio.checked) {
-        customRadio.classList.add('checked');
-        label.classList.add('checked');
-      } else {
-        customRadio.classList.remove('checked');
-        label.classList.remove('checked');
+        if (currentStep === steps.length - 1) {
+          nextButton.textContent = 'Отправить форму';
+          nextButton.type = 'submit';
+        } else {
+          nextButton.textContent = 'Следующий вопрос';
+          nextButton.type = 'button';
+        }
       }
-    }
 
-    const steps = document.querySelectorAll('.quiz-step');
-    const nextButton = document.querySelector('.quiz-buttons .btn-blue');
-    let currentStep = 0;
+      function updateNextButtonState() {
+        const currentStepElement = steps[currentStep];
+        const radios = currentStepElement.querySelectorAll('input[type="radio"]');
+        const inputs = currentStepElement.querySelectorAll('input[type="text"]');
 
-    showStep(currentStep);
-    updateButtons();
-
-    nextButton.addEventListener('click', function() {
-      if (this.classList.contains('disabled')) return;
-
-      if (currentStep < steps.length - 1) {
-        currentStep++;
-        showStep(currentStep);
-        updateButtons();
-      } else {
-        submitForm();
-      }
-    });
-
-    function showStep(stepIndex) {
-      steps.forEach((step, index) => {
-        step.style.display = index === stepIndex ? 'block' : 'none';
-      });
-    }
-
-    function updateButtons() {
-      updateNextButtonState();
-
-      if (currentStep === steps.length - 1) {
-        nextButton.textContent = 'Отправить форму';
-        nextButton.type = 'submit'; //
-      } else {
-        nextButton.textContent = 'Следующий вопрос';
-        nextButton.type = 'button';
-      }
-    }
-
-    function updateNextButtonState() {
-      const currentStepElement = steps[currentStep];
-      const radios = currentStepElement.querySelectorAll('input[type="radio"]');
-      const inputs = currentStepElement.querySelectorAll('input[type="text"]');
-
-      if (radios.length > 0) {
-        const atLeastOneChecked = Array.from(radios).some(radio => radio.checked);
-
-        if (atLeastOneChecked) {
+        if (radios.length > 0) {
           nextButton.classList.remove('disabled');
           nextButton.disabled = false;
-        } else {
-          nextButton.classList.add('disabled');
-          nextButton.disabled = true;
         }
-      } else if (inputs.length > 0) {
+        else if (inputs.length > 0) {
+          const nameInput = document.querySelector('input[placeholder="Имя"]');
+          const phoneInput = document.querySelector('.phone');
+          const emailInput = document.querySelector('input[placeholder="Email"]');
+
+          const isNameValid = nameInput && nameInput.value.trim().length > 0;
+          const isPhoneValid = phoneInput && isValidPhone(phoneInput.value);
+          const isEmailValid = emailInput && isValidEmail(emailInput.value);
+
+          if (isNameValid && isPhoneValid && isEmailValid) {
+            nextButton.classList.remove('disabled');
+            nextButton.disabled = false;
+          } else {
+            nextButton.classList.add('disabled');
+            nextButton.disabled = true;
+          }
+        }
+      }
+
+      function isValidPhone(phone) {
+        const phoneRegex = /^\+7\s\d{3}\s\d{3}-\d{2}-\d{2}$/;
+        return phoneRegex.test(phone);
+      }
+
+      function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      function initFormValidation() {
         const nameInput = document.querySelector('input[placeholder="Имя"]');
         const phoneInput = document.querySelector('.phone');
         const emailInput = document.querySelector('input[placeholder="Email"]');
 
-        const isNameValid = nameInput && nameInput.value.trim().length > 0;
-        const isPhoneValid = phoneInput && isValidPhone(phoneInput.value);
-        const isEmailValid = emailInput && isValidEmail(emailInput.value);
+        if (nameInput) {
+          nameInput.addEventListener('input', function() {
+            if (currentStep === steps.length - 1) {
+              updateNextButtonState();
+            }
+          });
+        }
 
-        if (isNameValid && isPhoneValid && isEmailValid) {
-          nextButton.classList.remove('disabled');
-          nextButton.disabled = false;
-        } else {
-          nextButton.classList.add('disabled');
-          nextButton.disabled = true;
+        if (emailInput) {
+          emailInput.addEventListener('input', function() {
+            if (this.value && !isValidEmail(this.value)) {
+              this.classList.add('error');
+            } else {
+              this.classList.remove('error');
+            }
+
+            if (currentStep === steps.length - 1) {
+              updateNextButtonState();
+            }
+          });
+
+          emailInput.addEventListener('blur', function() {
+            if (this.value && !isValidEmail(this.value)) {
+              this.classList.add('error');
+            } else {
+              this.classList.remove('error');
+            }
+          });
+        }
+
+        if (phoneInput) {
+          phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value.startsWith('7') || value.startsWith('8')) {
+              value = '7' + value.substring(1);
+            } else if (value.startsWith('9')) {
+              value = '7' + value;
+            }
+
+            let formattedValue = '+7';
+            if (value.length > 1) {
+              formattedValue += ' ' + value.substring(1, 4);
+            }
+            if (value.length >= 4) {
+              formattedValue += ' ' + value.substring(4, 7);
+            }
+            if (value.length >= 7) {
+              formattedValue += '-' + value.substring(7, 9);
+            }
+            if (value.length >= 9) {
+              formattedValue += '-' + value.substring(9, 11);
+            }
+
+            e.target.value = formattedValue;
+
+            if (currentStep === steps.length - 1) {
+              updateNextButtonState();
+            }
+
+            if (formattedValue.length > 0 && !isValidPhone(formattedValue)) {
+              e.target.classList.add('error');
+            } else {
+              e.target.classList.remove('error');
+            }
+          });
+
+          phoneInput.addEventListener('blur', function(e) {
+            if (e.target.value && !isValidPhone(e.target.value)) {
+              e.target.classList.add('error');
+            } else {
+              e.target.classList.remove('error');
+            }
+          });
         }
       }
-    }
 
-    function isValidPhone(phone) {
-      const phoneRegex = /^\+7\s\d{3}\s\d{3}-\d{2}-\d{2}$/;
-      return phoneRegex.test(phone);
-    }
+      function submitForm() {
+        const nameInput = document.querySelector('input[placeholder="Имя"]');
+        const phoneInput = document.querySelector('.phone');
+        const emailInput = document.querySelector('input[placeholder="Email"]');
 
-    function isValidEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    }
+        const formData = {
+          name: nameInput ? nameInput.value : '',
+          phone: phoneInput ? phoneInput.value : '',
+          email: emailInput ? emailInput.value : '',
+          answers: {}
+        };
 
-    function initFormValidation() {
-      const nameInput = document.querySelector('input[placeholder="Имя"]');
-      const phoneInput = document.querySelector('.phone');
-      const emailInput = document.querySelector('input[placeholder="Email"]');
-
-      if (nameInput) {
-        nameInput.addEventListener('input', function() {
-          if (currentStep === steps.length - 1) {
-            updateNextButtonState();
+        radioInputs.forEach(input => {
+          if (input.checked) {
+            formData.answers[input.name] = input.value;
           }
         });
+
       }
 
-      if (emailInput) {
-        emailInput.addEventListener('input', function() {
-          if (this.value && !isValidEmail(this.value)) {
-            this.classList.add('error');
-          } else {
-            this.classList.remove('error');
-          }
-
-          if (currentStep === steps.length - 1) {
-            updateNextButtonState();
-          }
-        });
-
-        emailInput.addEventListener('blur', function() {
-          if (this.value && !isValidEmail(this.value)) {
-            this.classList.add('error');
-          } else {
-            this.classList.remove('error');
-          }
-        });
-      }
-
-      // Маска для телефона
-      if (phoneInput) {
-        phoneInput.addEventListener('input', function(e) {
-          let value = e.target.value.replace(/\D/g, '');
-
-          if (value.startsWith('7') || value.startsWith('8')) {
-            value = '7' + value.substring(1);
-          } else if (value.startsWith('9')) {
-            value = '7' + value;
-          }
-
-          let formattedValue = '+7';
-          if (value.length > 1) {
-            formattedValue += ' ' + value.substring(1, 4);
-          }
-          if (value.length >= 4) {
-            formattedValue += ' ' + value.substring(4, 7);
-          }
-          if (value.length >= 7) {
-            formattedValue += '-' + value.substring(7, 9);
-          }
-          if (value.length >= 9) {
-            formattedValue += '-' + value.substring(9, 11);
-          }
-
-          e.target.value = formattedValue;
-
-          if (currentStep === steps.length - 1) {
-            updateNextButtonState();
-          }
-
-          if (formattedValue.length > 0 && !isValidPhone(formattedValue)) {
-            e.target.classList.add('error');
-          } else {
-            e.target.classList.remove('error');
-          }
-        });
-
-        phoneInput.addEventListener('blur', function(e) {
-          if (e.target.value && !isValidPhone(e.target.value)) {
-            e.target.classList.add('error');
-          } else {
-            e.target.classList.remove('error');
-          }
-        });
-      }
-    }
-
-    function submitForm() {
-      const nameInput = document.querySelector('input[placeholder="Имя"]');
-      const phoneInput = document.querySelector('.phone');
-      const emailInput = document.querySelector('input[placeholder="Email"]');
-
-      // Здесь будет логика отправки формы
-      console.log('Форма отправлена');
-    }
-
-    initFormValidation();
-  });
-</script>
+      initFormValidation();
+    });
+  </script>
 
 <!--footer.html-->
 </main>
